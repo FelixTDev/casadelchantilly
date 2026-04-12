@@ -1,0 +1,21 @@
+﻿# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Frontend
+chantilly-frontend/node_modules/
+chantilly-frontend/dist/
+chantilly-frontend/.vite/
+
+# Backend
+chantilly-backend/target/
+
+# IDE
+.vscode/
+.idea/
