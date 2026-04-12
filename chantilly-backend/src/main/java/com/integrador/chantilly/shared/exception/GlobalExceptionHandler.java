@@ -1,4 +1,4 @@
-package com.integrador.chantilly.shared.exception;
+﻿package com.integrador.chantilly.shared.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
