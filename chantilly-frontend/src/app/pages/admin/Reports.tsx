@@ -1,21 +1,14 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
-import { SALES_DATA } from "../../data/mock-data";
-
-const MONTHLY = [
-  { month: "Ene", ventas: 15200 }, { month: "Feb", ventas: 18400 }, { month: "Mar", ventas: 22100 },
-  { month: "Abr", ventas: 19800 }, { month: "May", ventas: 24500 }, { month: "Jun", ventas: 21000 },
-  { month: "Jul", ventas: 26300 }, { month: "Ago", ventas: 23700 }, { month: "Sep", ventas: 28100 },
-  { month: "Oct", ventas: 25400 }, { month: "Nov", ventas: 31200 }, { month: "Dic", ventas: 38500 },
-];
+import { SALES_DATA, MONTHLY } from "../../data/mock-data";
 
 export default function Reports() {
-  const [view, setView] = useState<"semanal" | "mensual">("semanal");
+  const [view, setView] = useState<"semanal" | "mensual" | "anual">("semanal");
 
   return (
     <div style={{ fontFamily: "Poppins" }}>
-      <div className="flex gap-2 mb-6">
-        {(["semanal", "mensual"] as const).map(v => (
+      <div className="flex flex-wrap gap-2 mb-6">
+        {(["semanal", "mensual", "anual"] as const).map(v => (
           <button key={v} onClick={() => setView(v)}
             className={`px-4 py-2 rounded-lg transition ${view === v ? "bg-[#D32F2F] text-white" : "bg-white text-[#333] border border-gray-200"}`}
             style={{ fontSize: 14, fontWeight: 600, textTransform: "capitalize" }}>{v}</button>

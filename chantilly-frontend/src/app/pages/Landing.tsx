@@ -1,8 +1,8 @@
-import React from "react";
+﻿import React from "react";
 import { Link } from "react-router";
 import { Home, Cake, Gift, Truck, Star, ChevronRight } from "lucide-react";
 import { BtnPrimary, BtnYellow } from "../components/shared";
-import { PRODUCTS, CATEGORIES, IMAGES } from "../data/mock-data";
+import { PRODUCTS, IMAGES } from "../data/mock-data";
 import { useApp } from "../context/AppContext";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 
@@ -19,11 +19,10 @@ export default function Landing() {
 
   return (
     <div style={{ fontFamily: "Poppins" }}>
-      {/* HERO */}
       <section className="bg-[#D32F2F] text-white py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center gap-10">
           <div className="flex-1 text-center md:text-left">
-            <p className="text-[#F5C518] mb-2" style={{ fontWeight: 600 }}>🏠 Pastelería Artesanal Peruana</p>
+            <p className="text-[#F5C518] mb-2" style={{ fontWeight: 600 }}>Pastelería Artesanal Peruana</p>
             <h1 className="text-3xl md:text-5xl mb-4" style={{ fontWeight: 700, lineHeight: 1.2 }}>
               Endulzamos tus <span className="text-[#F5C518]">momentos</span> más especiales
             </h1>
@@ -47,7 +46,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* CATEGORIES */}
       <section className="bg-[#F5F5F5] py-16">
         <div className="max-w-7xl mx-auto px-4">
           <h2 className="text-center text-[#333] mb-2" style={{ fontWeight: 700, fontSize: 28 }}>Nuestras Categorías</h2>
@@ -68,7 +66,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* FEATURED PRODUCTS */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4">
           <h2 className="text-center text-[#333] mb-2" style={{ fontWeight: 700, fontSize: 28 }}>Productos Destacados</h2>
@@ -95,7 +92,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* FEATURES */}
       <section className="bg-[#F5F5F5] py-16">
         <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8">
           {[

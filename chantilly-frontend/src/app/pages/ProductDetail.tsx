@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { useParams, Link } from "react-router";
 import { ArrowLeft, ShoppingCart, Package, Minus, Plus } from "lucide-react";
-import { BtnPrimary, BtnYellow } from "../components/shared";
+import { BtnPrimary } from "../components/shared";
 import { PRODUCTS } from "../data/mock-data";
 import { useApp } from "../context/AppContext";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";

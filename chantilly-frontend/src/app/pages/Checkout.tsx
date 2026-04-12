@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { useNavigate } from "react-router";
 import { MapPin, CreditCard, Calendar, Truck } from "lucide-react";
 import { BtnPrimary } from "../components/shared";
@@ -35,7 +35,6 @@ export default function Checkout() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-            {/* Address */}
             <div className="bg-white rounded-xl shadow-md p-6">
               <div className="flex items-center gap-2 mb-4">
                 <MapPin className="w-5 h-5 text-[#D32F2F]" />
@@ -45,7 +44,6 @@ export default function Checkout() {
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-[#F5F5F5] focus:border-[#D32F2F] focus:outline-none resize-none" />
             </div>
 
-            {/* Date */}
             <div className="bg-white rounded-xl shadow-md p-6">
               <div className="flex items-center gap-2 mb-4">
                 <Calendar className="w-5 h-5 text-[#D32F2F]" />
@@ -55,7 +53,6 @@ export default function Checkout() {
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-[#F5F5F5] focus:border-[#D32F2F] focus:outline-none" />
             </div>
 
-            {/* Payment */}
             <div className="bg-white rounded-xl shadow-md p-6">
               <div className="flex items-center gap-2 mb-4">
                 <CreditCard className="w-5 h-5 text-[#D32F2F]" />
@@ -77,7 +74,6 @@ export default function Checkout() {
             </div>
           </div>
 
-          {/* Summary */}
           <div className="bg-white rounded-xl shadow-md p-6 h-fit sticky top-20">
             <h2 className="text-[#333] mb-4 pb-4 border-b" style={{ fontWeight: 700 }}>Resumen del Pedido</h2>
             <div className="space-y-3 mb-4">
@@ -100,7 +96,7 @@ export default function Checkout() {
               <span className="text-[#D32F2F]" style={{ fontWeight: 700, fontSize: 22 }}>S/ {total.toFixed(2)}</span>
             </div>
             <BtnPrimary className="w-full mt-6" onClick={handleOrder}>Confirmar Pedido</BtnPrimary>
-            {subtotal > 100 && <p className="text-[#4CAF50] text-center mt-2" style={{ fontSize: 12 }}>🚚 ¡Delivery gratis por compras mayores a S/ 100!</p>}
+            {subtotal > 100 && <p className="text-[#4CAF50] text-center mt-2" style={{ fontSize: 12 }}>¡Delivery gratis por compras mayores a S/ 100!</p>}
           </div>
         </div>
       </div>

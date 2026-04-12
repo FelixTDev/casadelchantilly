@@ -93,7 +93,7 @@ export default function OrderDetail() {
             <span className="text-[#D32F2F]" style={{ fontWeight: 700, fontSize: 22 }}>S/ {order.total.toFixed(2)}</span>
           </div>
 
-          <p className="text-gray-500 mt-4" style={{ fontSize: 13 }}>📍 {order.address}</p>
+          <p className="text-gray-500 mt-4" style={{ fontSize: 13 }}>{order.address}</p>
         </div>
 
         {!isCancelled && order.status === "Entregado" && (

@@ -1,10 +1,9 @@
-import React from "react";
-import { Link, useNavigate, useLocation } from "react-router";
-import { ShoppingCart, User, Menu, X, Home, Search, ChevronDown } from "lucide-react";
+﻿import React from "react";
+import { Link, useNavigate } from "react-router";
+import { ShoppingCart, User, Menu, X, Home } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { OrderStatus, STATUS_COLORS } from "../data/mock-data";
 
-// ===== STATUS BADGE =====
 export function StatusBadge({ status }: { status: OrderStatus }) {
   const c = STATUS_COLORS[status];
   return (
@@ -14,7 +13,6 @@ export function StatusBadge({ status }: { status: OrderStatus }) {
   );
 }
 
-// ===== PRIMARY BUTTON =====
 export function BtnPrimary({ children, className = "", ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button className={`bg-[#D32F2F] text-white px-6 py-3 rounded-lg hover:bg-[#B71C1C] transition-colors disabled:opacity-50 ${className}`} style={{ fontFamily: "Poppins" }} {...props}>
@@ -39,7 +37,6 @@ export function BtnYellow({ children, className = "", ...props }: React.ButtonHT
   );
 }
 
-// ===== NAVBAR =====
 export function Navbar() {
   const { cart, setCartOpen, isLoggedIn, logout } = useApp();
   const [mobileOpen, setMobileOpen] = React.useState(false);
@@ -54,7 +51,6 @@ export function Navbar() {
           <span className="text-xl" style={{ fontWeight: 700 }}>La Casa del Chantilly</span>
         </Link>
 
-        {/* Desktop menu */}
         <div className="hidden md:flex items-center gap-6">
           <Link to="/" className="hover:text-[#F5C518] transition-colors">Inicio</Link>
           <Link to="/catalogo" className="hover:text-[#F5C518] transition-colors">Catálogo</Link>
@@ -86,7 +82,6 @@ export function Navbar() {
         </div>
       </div>
 
-      {/* Mobile menu */}
       {mobileOpen && (
         <div className="md:hidden bg-[#B71C1C] px-4 pb-4 space-y-3">
           <Link to="/" onClick={() => setMobileOpen(false)} className="block py-2 hover:text-[#F5C518]">Inicio</Link>
@@ -106,7 +101,6 @@ export function Navbar() {
   );
 }
 
-// ===== CART DRAWER =====
 export function CartDrawer() {
   const { cart, isCartOpen, setCartOpen, updateQty, removeFromCart } = useApp();
   const navigate = useNavigate();
@@ -159,7 +153,6 @@ export function CartDrawer() {
   );
 }
 
-// ===== FOOTER =====
 export function Footer() {
   return (
     <footer className="bg-[#333333] text-white py-10" style={{ fontFamily: "Poppins" }}>
@@ -182,9 +175,9 @@ export function Footer() {
         <div>
           <h4 className="text-[#F5C518] mb-3" style={{ fontWeight: 600 }}>Contacto</h4>
           <div className="space-y-2 text-gray-400" style={{ fontSize: 14 }}>
-            <p>📍 Av. La Molina 1234, Lima</p>
-            <p>📞 (01) 555-0123</p>
-            <p>✉️ info@casadelchantilly.pe</p>
+            <p>Av. La Molina 1234, Lima</p>
+            <p>(01) 555-0123</p>
+            <p>info@casadelchantilly.pe</p>
           </div>
         </div>
       </div>

@@ -1,4 +1,4 @@
-export const IMAGES = {
+﻿export const IMAGES = {
   birthday: "https://images.unsplash.com/photo-1741969494307-55394e3e4071?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiaXJ0aGRheSUyMGNha2UlMjBkZWNvcmF0ZWR8ZW58MXx8fHwxNzc2MDMyNzE0fDA&ixlib=rb-4.1.0&q=80&w=1080",
   chocolate: "https://images.unsplash.com/photo-1700448293876-07dca826c161?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjaG9jb2xhdGUlMjBjYWtlJTIwc2xpY2V8ZW58MXx8fHwxNzc2MDMyNzE0fDA&ixlib=rb-4.1.0&q=80&w=1080",
   cupcakes: "https://images.unsplash.com/photo-1615557509870-98972c5e1396?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjdXBjYWtlcyUyMGNvbG9yZnVsJTIwYmFrZXJ5fGVufDF8fHx8MTc3NjAzMjcxNXww&ixlib=rb-4.1.0&q=80&w=1080",
@@ -15,12 +15,12 @@ export const IMAGES = {
 export type OrderStatus = "Pendiente" | "En preparación" | "Listo" | "En ruta" | "Entregado" | "Cancelado";
 
 export const STATUS_COLORS: Record<OrderStatus, { bg: string; text: string }> = {
-  "Pendiente": { bg: "#F5C518", text: "#333333" },
+  Pendiente: { bg: "#F5C518", text: "#333333" },
   "En preparación": { bg: "#1976D2", text: "#FFFFFF" },
-  "Listo": { bg: "#4CAF50", text: "#FFFFFF" },
+  Listo: { bg: "#4CAF50", text: "#FFFFFF" },
   "En ruta": { bg: "#FF9800", text: "#FFFFFF" },
-  "Entregado": { bg: "#2E7D32", text: "#FFFFFF" },
-  "Cancelado": { bg: "#D32F2F", text: "#FFFFFF" },
+  Entregado: { bg: "#2E7D32", text: "#FFFFFF" },
+  Cancelado: { bg: "#D32F2F", text: "#FFFFFF" },
 };
 
 export interface Product {
@@ -80,4 +80,19 @@ export const SALES_DATA = [
   { date: "10 Abr", ventas: 2100 },
   { date: "11 Abr", ventas: 1750 },
   { date: "12 Abr", ventas: 2340 },
+];
+
+export const MONTHLY = [
+  { month: "Ene", ventas: 18200 },
+  { month: "Feb", ventas: 19500 },
+  { month: "Mar", ventas: 21100 },
+  { month: "Abr", ventas: 22800 },
+  { month: "May", ventas: 24750 },
+  { month: "Jun", ventas: 26100 },
+  { month: "Jul", ventas: 27800 },
+  { month: "Ago", ventas: 28950 },
+  { month: "Sep", ventas: 30100 },
+  { month: "Oct", ventas: 31500 },
+  { month: "Nov", ventas: 32900 },
+  { month: "Dic", ventas: 34800 },
 ];

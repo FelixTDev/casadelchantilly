@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { Plus, Edit2, Trash2, Search } from "lucide-react";
 import { BtnPrimary } from "../../components/shared";
 import { PRODUCTS, Product } from "../../data/mock-data";
@@ -7,7 +7,6 @@ import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 export default function AdminProducts() {
   const [products, setProducts] = useState(PRODUCTS);
   const [search, setSearch] = useState("");
-  const [editing, setEditing] = useState<Product | null>(null);
   const [showForm, setShowForm] = useState(false);
 
   const filtered = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
@@ -57,7 +56,7 @@ export default function AdminProducts() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map(p => (
+              {filtered.map((p: Product) => (
                 <tr key={p.id} className="border-t hover:bg-gray-50">
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-3">

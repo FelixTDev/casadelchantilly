@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { AlertTriangle, Package } from "lucide-react";
 import { PRODUCTS } from "../../data/mock-data";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
@@ -30,7 +30,7 @@ export default function StockAlerts() {
                   <span className={`${critical ? "text-[#D32F2F]" : "text-[#FF9800]"}`} style={{ fontWeight: 700, fontSize: 20 }}>{p.stock}</span>
                 </div>
                 <p className={`${critical ? "text-[#D32F2F]" : "text-[#FF9800]"}`} style={{ fontSize: 12, fontWeight: 600 }}>
-                  {critical ? "⚠️ Crítico" : "⚡ Bajo"}
+                  {critical ? "Crítico" : "Bajo"}
                 </p>
               </div>
             </div>
