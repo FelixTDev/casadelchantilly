@@ -1,4 +1,4 @@
-﻿import { createBrowserRouter } from "react-router";
+import { createBrowserRouter } from "react-router";
 import React from "react";
 
 import RootLayout from "./layouts/RootLayout";
@@ -8,6 +8,7 @@ import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Recovery from "./pages/Recovery";
+import ResetPassword from "./pages/ResetPassword";
 import Profile from "./pages/Profile";
 import Catalog from "./pages/Catalog";
 import ProductDetail from "./pages/ProductDetail";
@@ -48,6 +49,7 @@ export const router = createBrowserRouter([
       { path: "login", Component: Login },
       { path: "registro", Component: Register },
       { path: "recuperar", Component: Recovery },
+      { path: "reset-password/:token", Component: ResetPassword },
       {
         path: "admin",
         element: <ProtectedRoute adminOnly={true}><AdminLayout /></ProtectedRoute>,

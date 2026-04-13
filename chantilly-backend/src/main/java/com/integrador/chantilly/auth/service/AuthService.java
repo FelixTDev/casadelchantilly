@@ -1,4 +1,4 @@
-﻿package com.integrador.chantilly.auth.service;
+package com.integrador.chantilly.auth.service;
 
 import com.integrador.chantilly.auth.dto.AuthResponse;
 import com.integrador.chantilly.auth.dto.LoginRequest;
@@ -10,7 +10,7 @@ import com.integrador.chantilly.usuario.entity.Role;
 import com.integrador.chantilly.usuario.entity.Usuario;
 import com.integrador.chantilly.usuario.repository.RoleRepository;
 import com.integrador.chantilly.usuario.repository.UsuarioRepository;
-import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -71,7 +71,7 @@ public class AuthService {
         claims.put("id", usuario.getId());
         claims.put("rol", usuario.getRol().getNombre());
 
-        User userDetails = User.withUsername(usuario.getEmail())
+        UserDetails userDetails = org.springframework.security.core.userdetails.User.withUsername(usuario.getEmail())
                 .password(usuario.getPasswordHash())
                 .authorities(usuario.getRol().getNombre())
                 .build();
@@ -95,6 +95,22 @@ public class AuthService {
         usuario.setTokenExpiracion(LocalDateTime.now().plusHours(1));
         usuarioRepository.save(usuario);
 
-        return new MessageResponse("Revisa tu correo para restablecer tu contraseña");
+        return new MessageResponse(usuario.getTokenRecuperacion()); // Changed string to return token directly for the mock! 
+    }
+
+    public MessageResponse resetPassword(com.integrador.chantilly.auth.dto.ResetPasswordRequest req) {
+        Usuario usuario = usuarioRepository.findByTokenRecuperacion(req.getToken())
+                .orElseThrow(() -> new RuntimeException("Enlace inválido o expirado"));
+
+        if (usuario.getTokenExpiracion() == null || usuario.getTokenExpiracion().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("El enlace de recuperación ha expirado");
+        }
+
+        usuario.setPasswordHash(passwordEncoder.encode(req.getNewPassword()));
+        usuario.setTokenRecuperacion(null);
+        usuario.setTokenExpiracion(null);
+        
+        usuarioRepository.save(usuario);
+        return new MessageResponse("Contraseña actualizada exitosamente");
     }
 }

@@ -38,4 +38,9 @@ public class AuthController {
     public ResponseEntity<MessageResponse> recuperarPassword(@Valid @RequestBody RecoverRequest request) {
         return ResponseEntity.ok(authService.recuperarPassword(request));
     }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<MessageResponse> resetPassword(@Valid @RequestBody com.integrador.chantilly.auth.dto.ResetPasswordRequest request) {
+        return ResponseEntity.ok(authService.resetPassword(request));
+    }
 }

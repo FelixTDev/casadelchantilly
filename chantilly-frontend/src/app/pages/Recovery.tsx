@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import axios from "axios";
 import { Link } from "react-router";
 import { Home, CheckCircle, ArrowLeft } from "lucide-react";
@@ -44,8 +44,12 @@ export default function Recovery() {
           <div className="text-center py-6">
             <CheckCircle className="w-16 h-16 text-[#4CAF50] mx-auto mb-4" />
             <h2 className="text-[#333] mb-2" style={{ fontWeight: 700, fontSize: 20 }}>¡Correo enviado!</h2>
-            <p className="text-gray-500 mb-6" style={{ fontSize: 14 }}>{successMessage || `Hemos enviado un enlace de recuperación a ${email}. Revisa tu bandeja de entrada.`}</p>
-            <Link to="/login"><BtnPrimary>Volver al Login</BtnPrimary></Link>
+            <p className="text-gray-500 mb-6" style={{ fontSize: 14 }}>Hemos enviado un enlace de recuperación a {email}. Revisa tu bandeja de entrada.</p>
+            {/* HACK PARA TESTEAR LOCALMENTE EL MOCK */}
+            <Link to={`/reset-password/${successMessage}`}>
+              <BtnPrimary className="w-full mb-3 bg-[#4CAF50] hover:bg-green-700">Ir al Enlace del Correo</BtnPrimary>
+            </Link>
+            <Link to="/login" className="text-[#D32F2F] hover:underline" style={{ fontSize: 14 }}>Volver al Login</Link>
           </div>
         ) : (
           <>
