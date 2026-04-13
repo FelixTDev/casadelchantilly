@@ -1,4 +1,5 @@
-﻿import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import axios from "axios";
 import { CartItem, Product } from "../data/mock-data";
 import { authService, RegisterData } from "../../services/authService";
 
@@ -21,7 +22,7 @@ interface AppState {
   updateQty: (id: number, qty: number) => void;
   clearCart: () => void;
   setCartOpen: (v: boolean) => void;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   loginAdmin: () => void;
   logout: () => void;
   setUser: (u: User) => void;
@@ -67,7 +68,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
   const clearCart = () => setCart([]);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     setLoading(true);
     try {
       const response = await authService.login({ email, password });
@@ -77,9 +78,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setLoggedIn(true);
       setIsAdmin(data.rol === "ADMIN");
       setUser({ name: data.nombre, lastName: "", email: data.email, phone: "" });
-      return true;
-    } catch {
-      return false;
+      return { success: true };
+    } catch (err) {
+      let errorMsg = "Credenciales incorrectas. Intenta de nuevo.";
+      if (axios.isAxiosError(err) && err.response?.data?.mensaje) {
+        errorMsg = err.response.data.mensaje;
+      }
+      return { success: false, error: errorMsg };
     } finally {
       setLoading(false);
     }
@@ -95,13 +100,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const register = async (data: RegisterData) => {
-    const response = await authService.register(data);
-    return response.data;
+    setLoading(true);
+    try {
+      const response = await authService.register(data);
+      return response.data;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const recuperarPassword = async (email: string) => {
-    const response = await authService.recuperarPassword(email);
-    return response.data;
+    setLoading(true);
+    try {
+      const response = await authService.recuperarPassword(email);
+      return response.data;
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

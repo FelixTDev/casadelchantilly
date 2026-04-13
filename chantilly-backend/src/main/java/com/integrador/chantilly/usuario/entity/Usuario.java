@@ -44,7 +44,7 @@ public class Usuario {
     private LocalDateTime tokenExpiracion;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "rol_id", nullable = false)
+    @JoinColumn(name = "id_rol", nullable = false)
     private Role rol;
 
     @Column(nullable = false, updatable = false)

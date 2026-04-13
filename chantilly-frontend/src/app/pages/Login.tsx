@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { Home, Eye, EyeOff } from "lucide-react";
 import { BtnPrimary } from "../components/shared";
@@ -20,9 +20,9 @@ export default function Login() {
     }
 
     setError("");
-    const success = await login(email, password);
-    if (!success) {
-      setError("Credenciales incorrectas. Intenta de nuevo.");
+    const result = await login(email, password);
+    if (!result.success) {
+      setError(result.error || "Credenciales incorrectas. Intenta de nuevo.");
       return;
     }
     const userRaw = localStorage.getItem("chantilly_user");
