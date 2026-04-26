@@ -9,6 +9,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "carrito_items")
 public class CarritoItem {
@@ -18,14 +20,20 @@ public class CarritoItem {
     private Integer id;
 
     @ManyToOne
-    @JoinColumn(name = "carrito_id")
+    @JoinColumn(name = "id_carrito")
     private Carrito carrito;
 
     @ManyToOne
-    @JoinColumn(name = "producto_id")
+    @JoinColumn(name = "id_producto")
     private Producto producto;
 
     private Integer cantidad;
+
+    @jakarta.persistence.Column(name = "precio_unitario", nullable = false, precision = 10, scale = 2)
+    private BigDecimal precioUnitario;
+
+    @jakarta.persistence.Column(columnDefinition = "TEXT")
+    private String notas;
 
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
@@ -35,4 +43,8 @@ public class CarritoItem {
     public void setProducto(Producto producto) { this.producto = producto; }
     public Integer getCantidad() { return cantidad; }
     public void setCantidad(Integer cantidad) { this.cantidad = cantidad; }
+    public BigDecimal getPrecioUnitario() { return precioUnitario; }
+    public void setPrecioUnitario(BigDecimal precioUnitario) { this.precioUnitario = precioUnitario; }
+    public String getNotas() { return notas; }
+    public void setNotas(String notas) { this.notas = notas; }
 }

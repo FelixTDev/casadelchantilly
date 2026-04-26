@@ -50,8 +50,19 @@ public class SecurityConfig {
                                 "/swagger-resources/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/productos/**", "/api/categorias/**").permitAll()
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/auth/register",
+                                "/api/auth/login",
+                                "/api/auth/recuperar-password",
+                                "/api/auth/reset-password"
+                        ).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/productos/**", "/api/categorias/**", "/api/promociones/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/productos/**", "/api/categorias/**", "/api/promociones/**").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/productos/**", "/api/categorias/**", "/api/promociones/**").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/productos/**", "/api/categorias/**", "/api/promociones/**").hasAuthority("ADMIN")
+                        .requestMatchers("/api/usuarios/**").authenticated()
+                        .requestMatchers("/api/carrito/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/logout").authenticated()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

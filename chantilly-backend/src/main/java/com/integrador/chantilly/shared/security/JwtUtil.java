@@ -18,10 +18,10 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    @Value("${jwt.secret}")
+    @Value("${jwt.secret:c2VjcmV0S2V5Rm9yQ2hhbnRpbGx5MjAyNFNwcmluZ0Jvb3Q=}")
     private String secret;
 
-    @Value("${jwt.expiration}")
+    @Value("${jwt.expiration:86400000}")
     private long expiration;
 
     public String generateToken(UserDetails userDetails, Map<String, Object> extraClaims) {

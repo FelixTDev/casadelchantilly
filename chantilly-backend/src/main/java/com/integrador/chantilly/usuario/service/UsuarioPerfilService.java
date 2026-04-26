@@ -25,66 +25,88 @@ public class UsuarioPerfilService {
     public UsuarioPerfilDTO obtenerPerfil(String email) {
         Usuario usuario = usuarioRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-                
-        List<Direccion> direcciones = direccionRepository.findByUsuarioId(usuario.getId());
 
         UsuarioPerfilDTO dto = new UsuarioPerfilDTO();
         dto.setNombre(usuario.getNombre());
         dto.setApellido(usuario.getApellido());
         dto.setEmail(usuario.getEmail());
         dto.setTelefono(usuario.getTelefono());
-        
-        List<DireccionDTO> dirDtos = direcciones.stream().map(d -> {
-            DireccionDTO dDto = new DireccionDTO();
-            dDto.setId(d.getId());
-            dDto.setEtiqueta(d.getEtiqueta());
-            dDto.setDireccion(d.getDireccion());
-            dDto.setTelefono(d.getTelefono());
-            return dDto;
-        }).collect(Collectors.toList());
-        
-        dto.setDirecciones(dirDtos);
-        
+        dto.setDirecciones(listarDirecciones(email));
         return dto;
     }
 
     public void actualizarPerfil(String email, UsuarioPerfilDTO dto) {
         Usuario usuario = usuarioRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-        
+
         usuario.setNombre(dto.getNombre());
         usuario.setApellido(dto.getApellido());
         usuario.setTelefono(dto.getTelefono());
-        
         usuarioRepository.save(usuario);
+    }
+
+    public List<DireccionDTO> listarDirecciones(String email) {
+        Usuario usuario = usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        return direccionRepository.findByUsuarioId(usuario.getId())
+                .stream()
+                .map(this::toDireccionDto)
+                .collect(Collectors.toList());
     }
 
     public DireccionDTO agregarDireccion(String email, DireccionDTO dto) {
         Usuario usuario = usuarioRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-                
+
         Direccion direccion = new Direccion();
         direccion.setEtiqueta(dto.getEtiqueta());
         direccion.setDireccion(dto.getDireccion());
         direccion.setTelefono(dto.getTelefono());
         direccion.setUsuario(usuario);
-        
+
         Direccion guardada = direccionRepository.save(direccion);
-        dto.setId(guardada.getId());
-        return dto;
+        return toDireccionDto(guardada);
+    }
+
+    public DireccionDTO actualizarDireccion(String email, Integer direccionId, DireccionDTO dto) {
+        Usuario usuario = usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        Direccion direccion = direccionRepository.findById(direccionId)
+                .orElseThrow(() -> new RuntimeException("Direccion no encontrada"));
+
+        if (!direccion.getUsuario().getId().equals(usuario.getId())) {
+            throw new RuntimeException("No tiene permisos para editar esta direccion");
+        }
+
+        direccion.setEtiqueta(dto.getEtiqueta());
+        direccion.setDireccion(dto.getDireccion());
+        direccion.setTelefono(dto.getTelefono());
+        Direccion actualizada = direccionRepository.save(direccion);
+        return toDireccionDto(actualizada);
     }
 
     public void eliminarDireccion(String email, Integer direccionId) {
         Usuario usuario = usuarioRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-                
+
         Direccion direccion = direccionRepository.findById(direccionId)
-                .orElseThrow(() -> new RuntimeException("Dirección no encontrada"));
-                
+                .orElseThrow(() -> new RuntimeException("Direccion no encontrada"));
+
         if (!direccion.getUsuario().getId().equals(usuario.getId())) {
-            throw new RuntimeException("No tiene permisos para eliminar esta dirección");
+            throw new RuntimeException("No tiene permisos para eliminar esta direccion");
         }
-        
+
         direccionRepository.delete(direccion);
+    }
+
+    private DireccionDTO toDireccionDto(Direccion direccion) {
+        DireccionDTO dto = new DireccionDTO();
+        dto.setId(direccion.getId());
+        dto.setEtiqueta(direccion.getEtiqueta());
+        dto.setDireccion(direccion.getDireccion());
+        dto.setTelefono(direccion.getTelefono());
+        return dto;
     }
 }

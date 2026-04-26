@@ -5,11 +5,15 @@ import com.integrador.chantilly.auth.dto.LoginRequest;
 import com.integrador.chantilly.auth.dto.MessageResponse;
 import com.integrador.chantilly.auth.dto.RecoverRequest;
 import com.integrador.chantilly.auth.dto.RegisterRequest;
+import com.integrador.chantilly.auth.dto.ResetPasswordRequest;
 import com.integrador.chantilly.shared.security.JwtUtil;
+import com.integrador.chantilly.shared.security.TokenBlacklistService;
 import com.integrador.chantilly.usuario.entity.Role;
 import com.integrador.chantilly.usuario.entity.Usuario;
 import com.integrador.chantilly.usuario.repository.RoleRepository;
 import com.integrador.chantilly.usuario.repository.UsuarioRepository;
+import io.jsonwebtoken.Claims;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -26,20 +30,26 @@ public class AuthService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final TokenBlacklistService tokenBlacklistService;
+
+    @Value("${app.auth.recovery.expose-token:true}")
+    private boolean exposeRecoveryToken;
 
     public AuthService(UsuarioRepository usuarioRepository,
                        RoleRepository roleRepository,
                        PasswordEncoder passwordEncoder,
-                       JwtUtil jwtUtil) {
+                       JwtUtil jwtUtil,
+                       TokenBlacklistService tokenBlacklistService) {
         this.usuarioRepository = usuarioRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
+        this.tokenBlacklistService = tokenBlacklistService;
     }
 
     public MessageResponse register(RegisterRequest req) {
         if (usuarioRepository.existsByEmail(req.getEmail())) {
-            throw new RuntimeException("El email ya está registrado");
+            throw new RuntimeException("El email ya esta registrado");
         }
 
         Role rolCliente = roleRepository.findByNombre("CLIENTE")
@@ -61,10 +71,13 @@ public class AuthService {
 
     public AuthResponse login(LoginRequest req) {
         Usuario usuario = usuarioRepository.findByEmail(req.getEmail())
-                .orElseThrow(() -> new RuntimeException("Credenciales inválidas"));
+                .orElseThrow(() -> new RuntimeException("Credenciales invalidas"));
 
         if (!passwordEncoder.matches(req.getPassword(), usuario.getPasswordHash())) {
-            throw new RuntimeException("Credenciales inválidas");
+            throw new RuntimeException("Credenciales invalidas");
+        }
+        if (!Boolean.TRUE.equals(usuario.getActivo())) {
+            throw new RuntimeException("Usuario inactivo");
         }
 
         Map<String, Object> claims = new HashMap<>();
@@ -95,22 +108,35 @@ public class AuthService {
         usuario.setTokenExpiracion(LocalDateTime.now().plusHours(1));
         usuarioRepository.save(usuario);
 
-        return new MessageResponse(usuario.getTokenRecuperacion()); // Changed string to return token directly for the mock! 
+        if (exposeRecoveryToken) {
+            return new MessageResponse(usuario.getTokenRecuperacion());
+        }
+        return new MessageResponse("Si el correo existe, se envio un enlace de recuperacion");
     }
 
-    public MessageResponse resetPassword(com.integrador.chantilly.auth.dto.ResetPasswordRequest req) {
+    public MessageResponse resetPassword(ResetPasswordRequest req) {
         Usuario usuario = usuarioRepository.findByTokenRecuperacion(req.getToken())
-                .orElseThrow(() -> new RuntimeException("Enlace inválido o expirado"));
+                .orElseThrow(() -> new RuntimeException("Enlace invalido o expirado"));
 
         if (usuario.getTokenExpiracion() == null || usuario.getTokenExpiracion().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("El enlace de recuperación ha expirado");
+            throw new RuntimeException("El enlace de recuperacion ha expirado");
         }
 
         usuario.setPasswordHash(passwordEncoder.encode(req.getNewPassword()));
         usuario.setTokenRecuperacion(null);
         usuario.setTokenExpiracion(null);
-        
+
         usuarioRepository.save(usuario);
-        return new MessageResponse("Contraseña actualizada exitosamente");
+        return new MessageResponse("Contrasena actualizada exitosamente");
+    }
+
+    public MessageResponse logout(String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new RuntimeException("Token no enviado");
+        }
+        String token = authHeader.substring(7);
+        Claims claims = jwtUtil.extractAllClaims(token);
+        tokenBlacklistService.blacklistToken(token, claims.getExpiration());
+        return new MessageResponse("Sesion cerrada correctamente");
     }
 }

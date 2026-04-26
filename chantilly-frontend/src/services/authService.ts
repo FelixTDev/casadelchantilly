@@ -29,4 +29,6 @@ export const authService = {
     axiosInstance.post<{ mensaje: string }>('/auth/register', data),
   recuperarPassword: (email: string) =>
     axiosInstance.post<{ mensaje: string }>('/auth/recuperar-password', { email }),
+  logout: () =>
+    axiosInstance.post<{ mensaje: string }>('/auth/logout'),
 };

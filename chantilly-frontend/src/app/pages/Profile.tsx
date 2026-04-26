@@ -2,20 +2,20 @@ import React, { useState, useEffect } from "react";
 import { User, MapPin, Plus, Trash2, Edit2, Check, X } from "lucide-react";
 import { BtnPrimary, BtnSecondary } from "../components/shared";
 import { useApp } from "../context/AppContext";
-import axiosInstance from "../../lib/axiosInstance";
+import { usuarioService, DireccionApi } from "../../services/usuarioService";
 
 export default function Profile() {
   const { user, setUser } = useApp();
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ name: "", lastName: "", email: "", phone: "" });
-  const [addresses, setAddresses] = useState<any[]>([]);
+  const [addresses, setAddresses] = useState<DireccionApi[]>([]);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Modal para direcciones
   const [showModal, setShowModal] = useState(false);
   const [newAddress, setNewAddress] = useState({ etiqueta: "", direccion: "", telefono: "" });
   const [savingAddress, setSavingAddress] = useState(false);
+  const [editingAddressId, setEditingAddressId] = useState<number | null>(null);
 
   useEffect(() => {
     fetchProfile();
@@ -23,14 +23,19 @@ export default function Profile() {
 
   const fetchProfile = async () => {
     try {
-      const { data } = await axiosInstance.get("/usuarios/me");
+      const [perfilRes, direccionesRes] = await Promise.all([
+        usuarioService.getPerfil(),
+        usuarioService.getDirecciones(),
+      ]);
+
+      const perfil = perfilRes.data;
       setForm({
-        name: data.nombre || user.name,
-        lastName: data.apellido || user.lastName,
-        email: data.email || user.email,
-        phone: data.telefono || "",
+        name: perfil.nombre || user.name,
+        lastName: perfil.apellido || user.lastName,
+        email: perfil.email || user.email,
+        phone: perfil.telefono || "",
       });
-      setAddresses(data.direcciones || []);
+      setAddresses(direccionesRes.data || []);
     } catch (err) {
       console.error("Error cargando perfil", err);
     } finally {
@@ -40,13 +45,13 @@ export default function Profile() {
 
   const handleSave = async () => {
     try {
-      await axiosInstance.put("/usuarios/me", {
+      await usuarioService.updatePerfil({
         nombre: form.name,
         apellido: form.lastName,
+        email: form.email,
         telefono: form.phone,
       });
-      // Actualizar el contexto si cambia el nombre
-      setUser({ ...user, name: form.name, lastName: form.lastName });
+      setUser({ ...user, name: form.name, lastName: form.lastName, phone: form.phone });
       setEditing(false);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
@@ -56,32 +61,38 @@ export default function Profile() {
     }
   };
 
-  const handleAddAddress = async () => {
+  const handleSaveAddress = async () => {
     if (!newAddress.etiqueta || !newAddress.direccion) {
-      alert("La etiqueta y dirección son obligatorias");
+      alert("La etiqueta y direccion son obligatorias");
       return;
     }
     setSavingAddress(true);
     try {
-      const { data } = await axiosInstance.post("/usuarios/me/direcciones", newAddress);
-      setAddresses([...addresses, data]);
+      if (editingAddressId) {
+        const { data } = await usuarioService.updateDireccion(editingAddressId, newAddress);
+        setAddresses(addresses.map(a => a.id === editingAddressId ? data : a));
+      } else {
+        const { data } = await usuarioService.addDireccion(newAddress);
+        setAddresses([...addresses, data]);
+      }
       setShowModal(false);
       setNewAddress({ etiqueta: "", direccion: "", telefono: "" });
+      setEditingAddressId(null);
     } catch (err) {
-      console.error("Error agregando dirección", err);
-      alert("Hubo un error al agregar la dirección");
+      console.error("Error guardando direccion", err);
+      alert("Hubo un error al guardar la direccion");
     } finally {
       setSavingAddress(false);
     }
   };
 
   const handleDeleteAddress = async (id: number) => {
-    if (!confirm("¿Seguro que deseas eliminar esta dirección?")) return;
+    if (!confirm("Seguro que deseas eliminar esta direccion?")) return;
     try {
-      await axiosInstance.delete(`/usuarios/me/direcciones/${id}`);
-      setAddresses(addresses.filter(a => a.id !== id));
+      await usuarioService.deleteDireccion(id);
+      setAddresses(addresses.filter((a) => a.id !== id));
     } catch (err) {
-      console.error("Error eliminando dirección", err);
+      console.error("Error eliminando direccion", err);
       alert("Error al eliminar");
     }
   };
@@ -101,7 +112,6 @@ export default function Profile() {
           </div>
         )}
 
-        {/* Info Personal */}
         <div className="bg-white rounded-xl shadow-md p-6 mb-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
@@ -131,7 +141,7 @@ export default function Profile() {
                 </div>
               </div>
               <div>
-                <label className="block text-[#333] mb-1" style={{ fontSize: 14, fontWeight: 600 }}>Teléfono</label>
+                <label className="block text-[#333] mb-1" style={{ fontSize: 14, fontWeight: 600 }}>Telefono</label>
                 <input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="Ej: 987654321" className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-[#F5F5F5] focus:border-[#D32F2F] focus:outline-none" />
               </div>
               <div className="flex gap-3">
@@ -142,17 +152,16 @@ export default function Profile() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-[#333]" style={{ fontSize: 14 }}>
               <div><span className="text-gray-500">Nombre:</span> <span style={{ fontWeight: 600 }}>{form.name} {form.lastName}</span></div>
-              <div><span className="text-gray-500">Email:</span> <span style={{ fontWeight: 600 }}>{user.email}</span></div>
-              <div><span className="text-gray-500">Teléfono:</span> <span style={{ fontWeight: 600 }}>{form.phone || "-"}</span></div>
+              <div><span className="text-gray-500">Email:</span> <span style={{ fontWeight: 600 }}>{form.email || user.email}</span></div>
+              <div><span className="text-gray-500">Telefono:</span> <span style={{ fontWeight: 600 }}>{form.phone || "-"}</span></div>
             </div>
           )}
         </div>
 
-        {/* Direcciones */}
         <div className="bg-white rounded-xl shadow-md p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-[#333]" style={{ fontWeight: 700, fontSize: 18 }}>Direcciones Guardadas</h2>
-            <button onClick={() => setShowModal(true)} className="text-[#D32F2F] flex items-center gap-1 hover:underline" style={{ fontSize: 14, fontWeight: 600 }}>
+            <button onClick={() => { setEditingAddressId(null); setNewAddress({ etiqueta: "", direccion: "", telefono: "" }); setShowModal(true); }} className="text-[#D32F2F] flex items-center gap-1 hover:underline" style={{ fontSize: 14, fontWeight: 600 }}>
               <Plus className="w-4 h-4" /> Agregar
             </button>
           </div>
@@ -160,7 +169,7 @@ export default function Profile() {
             {addresses.length === 0 ? (
               <p className="text-gray-500 text-sm italic">No tienes direcciones guardadas.</p>
             ) : (
-              addresses.map(a => (
+              addresses.map((a) => (
                 <div key={a.id} className="flex items-start gap-3 p-4 bg-[#F5F5F5] rounded-lg">
                   <MapPin className="w-5 h-5 text-[#D32F2F] mt-0.5 shrink-0" />
                   <div className="flex-1">
@@ -168,21 +177,29 @@ export default function Profile() {
                     <p className="text-gray-500" style={{ fontSize: 14 }}>{a.direccion}</p>
                     {a.telefono && <p className="text-gray-400" style={{ fontSize: 13 }}>Tel: {a.telefono}</p>}
                   </div>
-                  <button onClick={() => handleDeleteAddress(a.id)} className="text-gray-400 hover:text-[#D32F2F]">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="flex justify-end gap-1">
+                    <button onClick={() => {
+                        setEditingAddressId(a.id || null);
+                        setNewAddress({ etiqueta: a.etiqueta, direccion: a.direccion, telefono: a.telefono || "" });
+                        setShowModal(true);
+                      }} className="text-gray-400 hover:text-[#1976D2] p-2">
+                       <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button onClick={() => handleDeleteAddress(a.id || 0)} className="text-gray-400 hover:text-[#D32F2F] p-2">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               ))
             )}
           </div>
         </div>
 
-        {/* Modal de Nueva Dirección */}
         {showModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-[#333]">Nueva Dirección</h3>
+                <h3 className="text-xl font-bold text-[#333]">{editingAddressId ? "Editar Direccion" : "Nueva Direccion"}</h3>
                 <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-[#D32F2F]"><X className="w-6 h-6"/></button>
               </div>
               <div className="space-y-4">
@@ -191,15 +208,15 @@ export default function Profile() {
                   <input value={newAddress.etiqueta} onChange={e => setNewAddress({...newAddress, etiqueta: e.target.value})} className="w-full border p-2 rounded" />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold mb-1">Dirección Completa</label>
+                  <label className="block text-sm font-semibold mb-1">Direccion Completa</label>
                   <input value={newAddress.direccion} onChange={e => setNewAddress({...newAddress, direccion: e.target.value})} className="w-full border p-2 rounded" />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold mb-1">Teléfono C/Recibe (Opcional)</label>
+                  <label className="block text-sm font-semibold mb-1">Telefono C/Recibe (Opcional)</label>
                   <input value={newAddress.telefono} onChange={e => setNewAddress({...newAddress, telefono: e.target.value})} className="w-full border p-2 rounded" />
                 </div>
-                <BtnPrimary onClick={handleAddAddress} disabled={savingAddress}>
-                  {savingAddress ? 'Guardando...' : 'Guardar Dirección'}
+                <BtnPrimary onClick={handleSaveAddress} disabled={savingAddress}>
+                  {savingAddress ? "Guardando..." : "Guardar Direccion"}
                 </BtnPrimary>
               </div>
             </div>

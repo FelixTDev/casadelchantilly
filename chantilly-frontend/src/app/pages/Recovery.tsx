@@ -11,6 +11,7 @@ export default function Recovery() {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const { recuperarPassword, loading } = useApp();
+  const isMockToken = /^[0-9a-fA-F-]{20,}$/.test(successMessage);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,10 +46,11 @@ export default function Recovery() {
             <CheckCircle className="w-16 h-16 text-[#4CAF50] mx-auto mb-4" />
             <h2 className="text-[#333] mb-2" style={{ fontWeight: 700, fontSize: 20 }}>¡Correo enviado!</h2>
             <p className="text-gray-500 mb-6" style={{ fontSize: 14 }}>Hemos enviado un enlace de recuperación a {email}. Revisa tu bandeja de entrada.</p>
-            {/* HACK PARA TESTEAR LOCALMENTE EL MOCK */}
-            <Link to={`/reset-password/${successMessage}`}>
-              <BtnPrimary className="w-full mb-3 bg-[#4CAF50] hover:bg-green-700">Ir al Enlace del Correo</BtnPrimary>
-            </Link>
+            {isMockToken && (
+              <Link to={`/reset-password/${successMessage}`}>
+                <BtnPrimary className="w-full mb-3 bg-[#4CAF50] hover:bg-green-700">Ir al Enlace del Correo</BtnPrimary>
+              </Link>
+            )}
             <Link to="/login" className="text-[#D32F2F] hover:underline" style={{ fontSize: 14 }}>Volver al Login</Link>
           </div>
         ) : (

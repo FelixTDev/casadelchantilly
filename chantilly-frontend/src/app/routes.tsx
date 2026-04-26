@@ -42,7 +42,7 @@ export const router = createBrowserRouter([
           { path: "confirmacion", Component: Confirmation },
           { path: "mis-pedidos", element: <ProtectedRoute><MyOrders /></ProtectedRoute> },
           { path: "pedido/:id", Component: OrderDetail },
-          { path: "perfil", element: <ProtectedRoute><Profile /></ProtectedRoute> },
+          { path: "perfil", element: <ProtectedRoute clientOnly={true}><Profile /></ProtectedRoute> },
           { path: "reclamo", element: <ProtectedRoute><Claim /></ProtectedRoute> },
         ],
       },

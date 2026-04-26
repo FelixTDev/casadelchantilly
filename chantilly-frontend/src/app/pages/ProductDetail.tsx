@@ -1,23 +1,73 @@
-﻿import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router";
 import { ArrowLeft, ShoppingCart, Package, Minus, Plus } from "lucide-react";
 import { BtnPrimary } from "../components/shared";
-import { PRODUCTS } from "../data/mock-data";
 import { useApp } from "../context/AppContext";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
+import { productoService, ProductoApi } from "../../services/productoService";
+
+type ViewProduct = {
+  id: number;
+  name: string;
+  category: string;
+  image: string;
+  price: number;
+  stock: number;
+  description: string;
+};
+
+function mapProductoToView(p: ProductoApi): ViewProduct {
+  return {
+    id: p.id || 0,
+    name: p.nombre,
+    category: p.categoriaNombre || "Sin categoria",
+    image: p.imagenUrl || "",
+    price: Number(p.precio ?? 0),
+    stock: p.stock ?? 0,
+    description: p.descripcion || "",
+  };
+}
 
 export default function ProductDetail() {
   const { id } = useParams();
-  const product = PRODUCTS.find(p => p.id === Number(id));
-  const { addToCart } = useApp();
+  const [product, setProduct] = useState<ViewProduct | null>(null);
   const [qty, setQty] = useState(1);
   const [custom, setCustom] = useState("");
+  const [loading, setLoading] = useState(true);
+  const { addToCart } = useApp();
+
+  useEffect(() => {
+    const load = async () => {
+      if (!id) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const response = await productoService.getById(Number(id));
+        setProduct(mapProductoToView(response.data));
+      } catch (error) {
+        console.error("Error cargando producto", error);
+        setProduct(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#F5F5F5] flex items-center justify-center" style={{ fontFamily: "Poppins" }}>
+        <div className="text-center text-[#333]">Cargando producto...</div>
+      </div>
+    );
+  }
 
   if (!product) return (
     <div className="min-h-screen bg-[#F5F5F5] flex items-center justify-center" style={{ fontFamily: "Poppins" }}>
       <div className="text-center">
         <h1 className="text-[#333] mb-4" style={{ fontWeight: 700, fontSize: 24 }}>Producto no encontrado</h1>
-        <Link to="/catalogo"><BtnPrimary>Volver al Catálogo</BtnPrimary></Link>
+        <Link to="/catalogo"><BtnPrimary>Volver al Catalogo</BtnPrimary></Link>
       </div>
     </div>
   );
@@ -26,7 +76,7 @@ export default function ProductDetail() {
     <div className="min-h-screen bg-[#F5F5F5] py-8 px-4" style={{ fontFamily: "Poppins" }}>
       <div className="max-w-6xl mx-auto">
         <Link to="/catalogo" className="inline-flex items-center gap-2 text-[#D32F2F] hover:underline mb-6" style={{ fontSize: 14, fontWeight: 600 }}>
-          <ArrowLeft className="w-4 h-4" /> Volver al catálogo
+          <ArrowLeft className="w-4 h-4" /> Volver al catalogo
         </Link>
 
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
@@ -43,13 +93,13 @@ export default function ProductDetail() {
               <div className="flex items-center gap-2 mb-4">
                 <Package className="w-5 h-5 text-[#4CAF50]" />
                 <span className={product.stock > 5 ? "text-[#4CAF50]" : "text-[#FF9800]"} style={{ fontSize: 14, fontWeight: 600 }}>
-                  {product.stock > 5 ? `${product.stock} en stock` : `¡Solo quedan ${product.stock}!`}
+                  {product.stock > 5 ? `${product.stock} en stock` : `Solo quedan ${product.stock}`}
                 </span>
               </div>
 
               <div className="mb-4">
-                <label className="block text-[#333] mb-2" style={{ fontSize: 14, fontWeight: 600 }}>Personalización (opcional)</label>
-                <textarea value={custom} onChange={e => setCustom(e.target.value)} rows={3} placeholder="Ej: Escribir 'Feliz Cumpleaños María', color rosado..."
+                <label className="block text-[#333] mb-2" style={{ fontSize: 14, fontWeight: 600 }}>Personalizacion (opcional)</label>
+                <textarea value={custom} onChange={e => setCustom(e.target.value)} rows={3} placeholder="Ej: Escribir 'Feliz Cumpleanos Maria', color rosado..."
                   className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-[#F5F5F5] focus:border-[#D32F2F] focus:outline-none resize-none" />
               </div>
 
@@ -58,7 +108,7 @@ export default function ProductDetail() {
                 <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
                   <button onClick={() => setQty(Math.max(1, qty - 1))} className="px-3 py-2 hover:bg-gray-100"><Minus className="w-4 h-4" /></button>
                   <span className="px-4 py-2 border-x border-gray-300" style={{ fontWeight: 600 }}>{qty}</span>
-                  <button onClick={() => setQty(Math.min(product.stock, qty + 1))} className="px-3 py-2 hover:bg-gray-100"><Plus className="w-4 h-4" /></button>
+                  <button onClick={() => setQty(Math.min(Math.max(1, product.stock), qty + 1))} className="px-3 py-2 hover:bg-gray-100"><Plus className="w-4 h-4" /></button>
                 </div>
               </div>
 
