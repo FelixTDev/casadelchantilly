@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
+﻿import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import axios from "axios";
 import { CartItem, Product } from "../data/mock-data";
 import { authService, RegisterData } from "../../services/authService";
@@ -56,27 +56,45 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<User>({ name: "Maria", lastName: "Garcia", email: "maria@email.com", phone: "987654321" });
 
+  const doLocalLogout = () => {
+    setLoggedIn(false);
+    setIsAdmin(false);
+    setCart([]);
+    localStorage.removeItem("chantilly_token");
+    localStorage.removeItem("chantilly_user");
+  };
+
   const syncCartFromApi = async () => {
     try {
       const response = await carritoService.getCarrito();
       setCart(mapCarritoApiToLocal(response.data));
+      return true;
     } catch {
       setCart([]);
+      return false;
     }
   };
 
   useEffect(() => {
-    const token = localStorage.getItem("chantilly_token");
-    const userStr = localStorage.getItem("chantilly_user");
-    if (token && userStr) {
+    const init = async () => {
+      const token = localStorage.getItem("chantilly_token");
+      const userStr = localStorage.getItem("chantilly_user");
+      if (!token || !userStr) return;
+
       const userData = JSON.parse(userStr);
       setLoggedIn(true);
       setIsAdmin(userData.rol === "ADMIN");
       setUser({ name: userData.nombre, lastName: "", email: userData.email, phone: "" });
+
       if (userData.rol !== "ADMIN") {
-        syncCartFromApi();
+        const ok = await syncCartFromApi();
+        if (!ok) {
+          doLocalLogout();
+        }
       }
-    }
+    };
+
+    init();
   }, []);
 
   const addToCart = async (p: Product, qty = 1, customization?: string) => {
@@ -182,12 +200,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
-    authService.logout().catch(() => undefined);
-    setLoggedIn(false);
-    setIsAdmin(false);
-    setCart([]);
-    localStorage.removeItem("chantilly_token");
-    localStorage.removeItem("chantilly_user");
+    const token = localStorage.getItem("chantilly_token");
+    if (token) {
+      authService.logout().catch(() => undefined);
+    }
+    doLocalLogout();
   };
 
   const register = async (data: RegisterData) => {

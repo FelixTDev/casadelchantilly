@@ -2,6 +2,7 @@ package com.integrador.chantilly.reclamo.entity;
 
 import com.integrador.chantilly.pedido.entity.Pedido;
 import com.integrador.chantilly.usuario.entity.Usuario;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -21,16 +22,33 @@ public class Reclamo {
     private Integer id;
 
     @ManyToOne
-    @JoinColumn(name = "usuario_id")
+    @JoinColumn(name = "id_usuario")
     private Usuario usuario;
 
     @ManyToOne
-    @JoinColumn(name = "pedido_id")
+    @JoinColumn(name = "id_pedido")
     private Pedido pedido;
 
+    @Column(length = 50)
+    private String tipo;
+
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String descripcion;
+
+    @Column(nullable = false, length = 30)
     private String estado;
-    private LocalDateTime fecha;
+
+    @Column(columnDefinition = "TEXT")
+    private String resolucion;
+
+    @Column(name = "tipo_solucion", length = 50)
+    private String tipoSolucion;
+
+    @Column(name = "creado_en", insertable = false, updatable = false)
+    private LocalDateTime creadoEn;
+
+    @Column(name = "resuelto_en")
+    private LocalDateTime resueltoEn;
 
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
@@ -38,10 +56,17 @@ public class Reclamo {
     public void setUsuario(Usuario usuario) { this.usuario = usuario; }
     public Pedido getPedido() { return pedido; }
     public void setPedido(Pedido pedido) { this.pedido = pedido; }
+    public String getTipo() { return tipo; }
+    public void setTipo(String tipo) { this.tipo = tipo; }
     public String getDescripcion() { return descripcion; }
     public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
-    public LocalDateTime getFecha() { return fecha; }
-    public void setFecha(LocalDateTime fecha) { this.fecha = fecha; }
+    public String getResolucion() { return resolucion; }
+    public void setResolucion(String resolucion) { this.resolucion = resolucion; }
+    public String getTipoSolucion() { return tipoSolucion; }
+    public void setTipoSolucion(String tipoSolucion) { this.tipoSolucion = tipoSolucion; }
+    public LocalDateTime getCreadoEn() { return creadoEn; }
+    public LocalDateTime getResueltoEn() { return resueltoEn; }
+    public void setResueltoEn(LocalDateTime resueltoEn) { this.resueltoEn = resueltoEn; }
 }

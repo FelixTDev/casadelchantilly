@@ -1,22 +1,73 @@
-﻿import React, { useState } from "react";
+﻿import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { MapPin, CreditCard, Calendar, Truck } from "lucide-react";
 import { BtnPrimary } from "../components/shared";
 import { useApp } from "../context/AppContext";
+import { usuarioService, DireccionApi } from "../../services/usuarioService";
+import { pedidoService } from "../../services/pedidoService";
+import { pagoService } from "../../services/pagoService";
+
+const PAYMENT_OPTIONS = [
+  { value: "EFECTIVO", label: "Efectivo" },
+  { value: "YAPE", label: "Yape" },
+  { value: "PLIN", label: "Plin" },
+  { value: "TRANSFERENCIA", label: "Transferencia Bancaria" },
+];
 
 export default function Checkout() {
   const { cart, clearCart } = useApp();
   const navigate = useNavigate();
-  const [address, setAddress] = useState("Av. Larco 345, Miraflores, Lima");
-  const [date, setDate] = useState("2026-04-15");
-  const [payment, setPayment] = useState("card");
-  const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-  const delivery = subtotal > 100 ? 0 : 10;
+
+  const [direcciones, setDirecciones] = useState<DireccionApi[]>([]);
+  const [modalidad, setModalidad] = useState<"DELIVERY" | "RECOJO_TIENDA">("DELIVERY");
+  const [direccionId, setDireccionId] = useState<number | null>(null);
+  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [payment, setPayment] = useState("EFECTIVO");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const loadDirecciones = async () => {
+      try {
+        const response = await usuarioService.getDirecciones();
+        setDirecciones(response.data);
+        if (response.data.length > 0) {
+          setDireccionId(response.data[0].id || null);
+        }
+      } catch (error) {
+        console.error("Error cargando direcciones", error);
+      }
+    };
+    loadDirecciones();
+  }, []);
+
+  const subtotal = useMemo(() => cart.reduce((s, i) => s + i.price * i.quantity, 0), [cart]);
+  const delivery = modalidad === "DELIVERY" ? 5 : 0;
   const total = subtotal + delivery;
 
-  const handleOrder = () => {
-    clearCart();
-    navigate("/confirmacion");
+  const handleOrder = async () => {
+    try {
+      setLoading(true);
+      const pedidoRes = await pedidoService.crear({
+        modalidadEntrega: modalidad,
+        idDireccion: modalidad === "DELIVERY" ? direccionId : null,
+        fechaEntrega: date,
+        horaEntrega: null,
+        notasCliente: "",
+      });
+
+      await pagoService.registrar(pedidoRes.data.id, {
+        metodoPago: payment,
+      });
+
+      await clearCart();
+      navigate("/confirmacion", { state: { pedidoId: pedidoRes.data.id } });
+    } catch (error) {
+      console.error("Error creando pedido", error);
+      const msg = (error as any)?.response?.data?.mensaje || "No se pudo confirmar el pedido";
+      alert(msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (cart.length === 0) return (
@@ -38,10 +89,26 @@ export default function Checkout() {
             <div className="bg-white rounded-xl shadow-md p-6">
               <div className="flex items-center gap-2 mb-4">
                 <MapPin className="w-5 h-5 text-[#D32F2F]" />
-                <h2 className="text-[#333]" style={{ fontWeight: 700 }}>Dirección de Entrega</h2>
+                <h2 className="text-[#333]" style={{ fontWeight: 700 }}>Entrega</h2>
               </div>
-              <textarea value={address} onChange={e => setAddress(e.target.value)} rows={2}
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-[#F5F5F5] focus:border-[#D32F2F] focus:outline-none resize-none" />
+              <div className="space-y-3">
+                <label className="flex items-center gap-2">
+                  <input type="radio" checked={modalidad === "DELIVERY"} onChange={() => setModalidad("DELIVERY")} /> Delivery
+                </label>
+                <label className="flex items-center gap-2">
+                  <input type="radio" checked={modalidad === "RECOJO_TIENDA"} onChange={() => setModalidad("RECOJO_TIENDA")} /> Recojo en tienda
+                </label>
+              </div>
+
+              {modalidad === "DELIVERY" && (
+                <select
+                  value={direccionId ?? ""}
+                  onChange={e => setDireccionId(Number(e.target.value))}
+                  className="w-full mt-4 border border-gray-300 rounded-lg px-4 py-3 bg-[#F5F5F5] focus:border-[#D32F2F] focus:outline-none"
+                >
+                  {direcciones.map(d => <option key={d.id} value={d.id}>{d.etiqueta} - {d.direccion}</option>)}
+                </select>
+              )}
             </div>
 
             <div className="bg-white rounded-xl shadow-md p-6">
@@ -49,7 +116,7 @@ export default function Checkout() {
                 <Calendar className="w-5 h-5 text-[#D32F2F]" />
                 <h2 className="text-[#333]" style={{ fontWeight: 700 }}>Fecha de Entrega</h2>
               </div>
-              <input type="date" value={date} onChange={e => setDate(e.target.value)} min="2026-04-13"
+              <input type="date" value={date} onChange={e => setDate(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-[#F5F5F5] focus:border-[#D32F2F] focus:outline-none" />
             </div>
 
@@ -59,12 +126,7 @@ export default function Checkout() {
                 <h2 className="text-[#333]" style={{ fontWeight: 700 }}>Método de Pago</h2>
               </div>
               <div className="space-y-3">
-                {[
-                  { value: "card", label: "Tarjeta de Crédito/Débito" },
-                  { value: "yape", label: "Yape / Plin" },
-                  { value: "transfer", label: "Transferencia Bancaria" },
-                  { value: "cash", label: "Pago contra entrega" },
-                ].map(m => (
+                {PAYMENT_OPTIONS.map(m => (
                   <label key={m.value} className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer border transition ${payment === m.value ? "border-[#D32F2F] bg-red-50" : "border-gray-200"}`}>
                     <input type="radio" name="payment" value={m.value} checked={payment === m.value} onChange={() => setPayment(m.value)} className="accent-[#D32F2F]" />
                     <span className="text-[#333]" style={{ fontSize: 14, fontWeight: payment === m.value ? 600 : 400 }}>{m.label}</span>
@@ -88,18 +150,23 @@ export default function Checkout() {
               <div className="flex justify-between"><span className="text-gray-500">Subtotal</span><span>S/ {subtotal.toFixed(2)}</span></div>
               <div className="flex justify-between">
                 <span className="text-gray-500 flex items-center gap-1"><Truck className="w-4 h-4" /> Delivery</span>
-                <span className={delivery === 0 ? "text-[#4CAF50]" : ""}>{delivery === 0 ? "Gratis" : `S/ ${delivery.toFixed(2)}`}</span>
+                <span>{`S/ ${delivery.toFixed(2)}`}</span>
               </div>
             </div>
             <div className="border-t mt-3 pt-3 flex justify-between">
               <span className="text-[#333]" style={{ fontWeight: 700, fontSize: 18 }}>Total</span>
               <span className="text-[#D32F2F]" style={{ fontWeight: 700, fontSize: 22 }}>S/ {total.toFixed(2)}</span>
             </div>
-            <BtnPrimary className="w-full mt-6" onClick={handleOrder}>Confirmar Pedido</BtnPrimary>
-            {subtotal > 100 && <p className="text-[#4CAF50] text-center mt-2" style={{ fontSize: 12 }}>¡Delivery gratis por compras mayores a S/ 100!</p>}
+            <BtnPrimary className="w-full mt-6" onClick={handleOrder} disabled={loading || (modalidad === "DELIVERY" && !direccionId)}>
+              {loading ? "Procesando..." : "Confirmar Pedido"}
+            </BtnPrimary>
           </div>
         </div>
       </div>
     </div>
   );
 }
+
+
+
+

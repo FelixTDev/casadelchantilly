@@ -1,12 +1,43 @@
-import React, { useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { Link } from "react-router";
-import { ArrowLeft, Upload, CheckCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle } from "lucide-react";
 import { BtnPrimary } from "../components/shared";
+import { pedidoService, PedidoApi } from "../../services/pedidoService";
+import { reclamoService } from "../../services/reclamoService";
 
 export default function Claim() {
   const [type, setType] = useState("");
   const [desc, setDesc] = useState("");
+  const [pedidoId, setPedidoId] = useState<number | null>(null);
+  const [pedidos, setPedidos] = useState<PedidoApi[]>([]);
   const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const response = await pedidoService.getMisPedidos();
+        const entregados = response.data.filter((p) => p.estado === "ENTREGADO");
+        setPedidos(entregados);
+        if (entregados.length > 0) {
+          setPedidoId(entregados[0].id);
+        }
+      } catch (error) {
+        console.error("Error cargando pedidos", error);
+      }
+    };
+    load();
+  }, []);
+
+  const handleSubmit = async () => {
+    if (!pedidoId || !type || !desc) return;
+    try {
+      await reclamoService.crear({ pedidoId, tipo: type, descripcion: desc });
+      setSubmitted(true);
+    } catch (error) {
+      console.error("Error creando reclamo", error);
+      alert("No se pudo registrar el reclamo");
+    }
+  };
 
   if (submitted) return (
     <div className="min-h-screen bg-[#F5F5F5] flex items-center justify-center px-4" style={{ fontFamily: "Poppins" }}>
@@ -29,14 +60,20 @@ export default function Claim() {
           <h1 className="text-[#333] mb-6" style={{ fontWeight: 700, fontSize: 24 }}>Formulario de Reclamo</h1>
           <div className="space-y-5">
             <div>
+              <label className="block text-[#333] mb-2" style={{ fontSize: 14, fontWeight: 600 }}>Pedido</label>
+              <select value={pedidoId ?? ""} onChange={e => setPedidoId(Number(e.target.value))}
+                className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-[#F5F5F5] focus:border-[#D32F2F] focus:outline-none">
+                {pedidos.map((p) => <option key={p.id} value={p.id}>{p.codigoPedido}</option>)}
+              </select>
+            </div>
+            <div>
               <label className="block text-[#333] mb-2" style={{ fontSize: 14, fontWeight: 600 }}>Tipo de problema</label>
               <select value={type} onChange={e => setType(e.target.value)} className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-[#F5F5F5] focus:border-[#D32F2F] focus:outline-none">
                 <option value="">Selecciona...</option>
-                <option>Producto dañado</option>
-                <option>Producto incorrecto</option>
-                <option>Pedido incompleto</option>
-                <option>Demora en entrega</option>
-                <option>Otro</option>
+                <option value="PRODUCTO_DANADO">Producto dañado</option>
+                <option value="PRODUCTO_INCORRECTO">Producto incorrecto</option>
+                <option value="RETRASO">Demora en entrega</option>
+                <option value="OTRO">Otro</option>
               </select>
             </div>
             <div>
@@ -44,18 +81,11 @@ export default function Claim() {
               <textarea value={desc} onChange={e => setDesc(e.target.value)} rows={5} placeholder="Describe el problema con detalle..."
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-[#F5F5F5] focus:border-[#D32F2F] focus:outline-none resize-none" />
             </div>
-            <div>
-              <label className="block text-[#333] mb-2" style={{ fontSize: 14, fontWeight: 600 }}>Adjuntar imagen (opcional)</label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-[#D32F2F] transition cursor-pointer">
-                <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                <p className="text-gray-500" style={{ fontSize: 14 }}>Haz clic o arrastra una imagen aquí</p>
-                <p className="text-gray-400" style={{ fontSize: 12 }}>PNG, JPG hasta 5MB</p>
-              </div>
-            </div>
-            <BtnPrimary onClick={() => setSubmitted(true)} disabled={!type || !desc} className="w-full">Enviar Reclamo</BtnPrimary>
+            <BtnPrimary onClick={handleSubmit} disabled={!type || !desc || !pedidoId} className="w-full">Enviar Reclamo</BtnPrimary>
           </div>
         </div>
       </div>
     </div>
   );
 }
+

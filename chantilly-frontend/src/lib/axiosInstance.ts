@@ -1,4 +1,4 @@
-import axios from 'axios';
+﻿import axios from 'axios';
 
 const axiosInstance = axios.create({
   baseURL: 'http://localhost:8081/api',
@@ -14,10 +14,12 @@ axiosInstance.interceptors.request.use(config => {
 axiosInstance.interceptors.response.use(
   response => response,
   error => {
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 || error.response?.status === 403) {
       localStorage.removeItem('chantilly_token');
       localStorage.removeItem('chantilly_user');
-      window.location.href = '/login';
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

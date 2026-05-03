@@ -17,6 +17,7 @@ import Confirmation from "./pages/Confirmation";
 import MyOrders from "./pages/MyOrders";
 import OrderDetail from "./pages/OrderDetail";
 import Claim from "./pages/Claim";
+import NotFound from "./pages/NotFound";
 
 import AdminLayout from "./pages/admin/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
@@ -62,6 +63,7 @@ export const router = createBrowserRouter([
           { path: "alertas", Component: StockAlerts },
         ],
       },
+      { path: "*", Component: NotFound },
     ],
   },
 ]);

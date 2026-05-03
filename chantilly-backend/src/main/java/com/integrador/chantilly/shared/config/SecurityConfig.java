@@ -15,7 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @EnableWebSecurity
 public class SecurityConfig {
 
@@ -60,8 +60,18 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/productos/**", "/api/categorias/**", "/api/promociones/**").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/productos/**", "/api/categorias/**", "/api/promociones/**").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/productos/**", "/api/categorias/**", "/api/promociones/**").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/pedidos").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/pedidos/*/estado").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/pagos/*/confirmar").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/reclamos").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/reclamos/*/resolver").hasAuthority("ADMIN")
+                        .requestMatchers("/api/reportes/**").hasAuthority("ADMIN")
                         .requestMatchers("/api/usuarios/**").authenticated()
                         .requestMatchers("/api/carrito/**").authenticated()
+                        .requestMatchers("/api/pedidos/**").authenticated()
+                        .requestMatchers("/api/pagos/**").authenticated()
+                        .requestMatchers("/api/reclamos/**").authenticated()
+                        .requestMatchers("/api/notificaciones/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/auth/logout").authenticated()
                         .anyRequest().authenticated()
                 )

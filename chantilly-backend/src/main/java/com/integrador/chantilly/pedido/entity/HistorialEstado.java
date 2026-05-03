@@ -1,5 +1,7 @@
 package com.integrador.chantilly.pedido.entity;
 
+import com.integrador.chantilly.usuario.entity.Usuario;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -19,11 +21,21 @@ public class HistorialEstado {
     private Integer id;
 
     @ManyToOne
-    @JoinColumn(name = "pedido_id")
+    @JoinColumn(name = "id_pedido")
     private Pedido pedido;
 
+    @Column(nullable = false, length = 50)
     private String estado;
-    private LocalDateTime fecha;
+
+    @Column(length = 255)
+    private String comentario;
+
+    @ManyToOne
+    @JoinColumn(name = "cambiado_por")
+    private Usuario cambiadoPor;
+
+    @Column(name = "creado_en", insertable = false, updatable = false)
+    private LocalDateTime creadoEn;
 
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
@@ -31,6 +43,9 @@ public class HistorialEstado {
     public void setPedido(Pedido pedido) { this.pedido = pedido; }
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
-    public LocalDateTime getFecha() { return fecha; }
-    public void setFecha(LocalDateTime fecha) { this.fecha = fecha; }
+    public String getComentario() { return comentario; }
+    public void setComentario(String comentario) { this.comentario = comentario; }
+    public Usuario getCambiadoPor() { return cambiadoPor; }
+    public void setCambiadoPor(Usuario cambiadoPor) { this.cambiadoPor = cambiadoPor; }
+    public LocalDateTime getCreadoEn() { return creadoEn; }
 }

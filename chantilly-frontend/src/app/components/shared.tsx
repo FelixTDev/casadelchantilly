@@ -1,10 +1,35 @@
 ﻿import React from "react";
 import { Link, useNavigate } from "react-router";
-import { ShoppingCart, User, Menu, X, Home } from "lucide-react";
+import { ShoppingCart, User, Menu, X, Home, Bell } from "lucide-react";
 import { useApp } from "../context/AppContext";
-import { OrderStatus, STATUS_COLORS } from "../data/mock-data";
+import { notificacionService, NotificacionApi } from "../../services/notificacionService";
 
-export function StatusBadge({ status }: { status: OrderStatus }) {
+export type UiOrderStatus = "Pendiente" | "En preparación" | "Listo" | "En ruta" | "Entregado" | "Cancelado" | "Rechazado";
+
+const STATUS_COLORS: Record<UiOrderStatus, { bg: string; text: string }> = {
+  Pendiente: { bg: "#F5C518", text: "#333333" },
+  "En preparación": { bg: "#1976D2", text: "#FFFFFF" },
+  Listo: { bg: "#4CAF50", text: "#FFFFFF" },
+  "En ruta": { bg: "#FF9800", text: "#FFFFFF" },
+  Entregado: { bg: "#2E7D32", text: "#FFFFFF" },
+  Cancelado: { bg: "#D32F2F", text: "#FFFFFF" },
+  Rechazado: { bg: "#6B7280", text: "#FFFFFF" },
+};
+
+export function toUiStatus(status: string): UiOrderStatus {
+  switch ((status || "").toUpperCase()) {
+    case "PENDIENTE": return "Pendiente";
+    case "EN_PREPARACION": return "En preparación";
+    case "LISTO": return "Listo";
+    case "EN_RUTA": return "En ruta";
+    case "ENTREGADO": return "Entregado";
+    case "CANCELADO": return "Cancelado";
+    case "RECHAZADO": return "Rechazado";
+    default: return "Pendiente";
+  }
+}
+
+export function StatusBadge({ status }: { status: UiOrderStatus }) {
   const c = STATUS_COLORS[status];
   return (
     <span className="px-3 py-1 rounded-full inline-block whitespace-nowrap" style={{ backgroundColor: c.bg, color: c.text, fontFamily: "Poppins", fontSize: 13 }}>
@@ -40,8 +65,39 @@ export function BtnYellow({ children, className = "", ...props }: React.ButtonHT
 export function Navbar() {
   const { cart, setCartOpen, isLoggedIn, logout } = useApp();
   const [mobileOpen, setMobileOpen] = React.useState(false);
+  const [notifOpen, setNotifOpen] = React.useState(false);
+  const [notificaciones, setNotificaciones] = React.useState<NotificacionApi[]>([]);
+  const [noLeidas, setNoLeidas] = React.useState(0);
   const navigate = useNavigate();
   const cartCount = cart.reduce((s, i) => s + i.quantity, 0);
+
+  const loadNoLeidas = React.useCallback(async () => {
+    if (!isLoggedIn) return;
+    try {
+      const response = await notificacionService.getNoLeidas();
+      setNoLeidas(response.data.total || 0);
+    } catch {
+      setNoLeidas(0);
+    }
+  }, [isLoggedIn]);
+
+  React.useEffect(() => {
+    loadNoLeidas();
+  }, [loadNoLeidas]);
+
+  const abrirNotificaciones = async () => {
+    setNotifOpen(!notifOpen);
+    if (!notifOpen) {
+      try {
+        const response = await notificacionService.getNotificaciones();
+        setNotificaciones(response.data);
+        await notificacionService.marcarTodasLeidas();
+        setNoLeidas(0);
+      } catch (error) {
+        console.error("Error cargando notificaciones", error);
+      }
+    }
+  };
 
   return (
     <nav className="bg-[#D32F2F] text-white sticky top-0 z-50 shadow-lg" style={{ fontFamily: "Poppins" }}>
@@ -57,7 +113,16 @@ export function Navbar() {
           {isLoggedIn && <Link to="/mis-pedidos" className="hover:text-[#F5C518] transition-colors">Mis Pedidos</Link>}
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 relative">
+          {isLoggedIn && (
+            <button onClick={abrirNotificaciones} className="relative hover:text-[#F5C518] transition-colors">
+              <Bell className="w-6 h-6" />
+              {noLeidas > 0 && (
+                <span className="absolute -top-2 -right-2 bg-[#F5C518] text-[#333] w-5 h-5 rounded-full flex items-center justify-center" style={{ fontSize: 11, fontWeight: 700 }}>{noLeidas}</span>
+              )}
+            </button>
+          )}
+
           <button onClick={() => setCartOpen(true)} className="relative hover:text-[#F5C518] transition-colors">
             <ShoppingCart className="w-6 h-6" />
             {cartCount > 0 && (
@@ -79,6 +144,22 @@ export function Navbar() {
           <button className="md:hidden" onClick={() => setMobileOpen(!mobileOpen)}>
             {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
+
+          {notifOpen && (
+            <div className="absolute right-0 top-12 bg-white text-[#333] rounded-lg shadow-lg w-80 max-h-96 overflow-y-auto z-50">
+              <div className="p-3 border-b" style={{ fontWeight: 700 }}>Notificaciones</div>
+              {notificaciones.length === 0 ? (
+                <div className="p-3 text-gray-500" style={{ fontSize: 14 }}>Sin notificaciones</div>
+              ) : (
+                notificaciones.map((n) => (
+                  <div key={n.id} className="p-3 border-b last:border-b-0">
+                    <p style={{ fontWeight: 600, fontSize: 14 }}>{n.titulo}</p>
+                    <p className="text-gray-500" style={{ fontSize: 13 }}>{n.mensaje}</p>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -187,3 +268,4 @@ export function Footer() {
     </footer>
   );
 }
+

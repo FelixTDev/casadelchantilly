@@ -46,4 +46,6 @@ export const productoService = {
   crear: (data: ProductoApi) => axiosInstance.post<ProductoApi>("/productos", data),
   actualizar: (id: number, data: ProductoApi) => axiosInstance.put<ProductoApi>(`/productos/${id}`, data),
   desactivar: (id: number) => axiosInstance.delete(`/productos/${id}`),
+  crearPromocion: (data: PromocionApi) => axiosInstance.post<PromocionApi>("/promociones", data),
+  desactivarPromocion: (id: number) => axiosInstance.delete(`/promociones/${id}`),
 };
